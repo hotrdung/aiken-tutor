@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "tsx",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/unlock.ts", // <-- Put your file to run here
+      "runtimeExecutable": "tsx",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "args": ["9fee7e3417833187ff1c979bd2781d5a64feba4e0adb194359375f98b625d0f9"] // <-- Add your CLI arguments here
+    }
+  ]
+}
