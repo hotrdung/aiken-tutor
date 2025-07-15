@@ -2,21 +2,13 @@ import {
   Asset,
   conStr0,
   ConStr0,
-  mConStr0,
-  mConStr1,
-  MeshValue,
   pubKeyAddress,
   PubKeyAddress,
-  UTxO,
   value,
   Value,
-  outputReference,
 } from "@meshsdk/common";
 import {
   deserializeAddress,
-  deserializeDatum,
-  serializeAddressObj,
-  resolveScriptHash,
 } from "@meshsdk/core";
 import {
   getTxBuilder,

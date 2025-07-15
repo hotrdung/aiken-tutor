@@ -1,6 +1,6 @@
 import {
   ConStr0,
-  mConStr1,
+  mConStr0,
   MeshValue,
   PubKeyAddress,
   UTxO,
@@ -9,20 +9,21 @@ import {
 import {
   deserializeDatum,
   serializeAddressObj,
+  deserializeAddress,
 } from "@meshsdk/core";
 import {
   bfProvider,
   getTxBuilder,
-  redeemer_wallet,
+  sender_wallet,
   getScript,
   getWalletInfoForTx,
 } from "./common.js";
 
 export type SwapDatum = ConStr0<[PubKeyAddress, Value, Value]>;
 
-async function acceptSwap(swapUtxo: UTxO): Promise<string> {
+async function cancelSwap(swapUtxo: UTxO): Promise<string> {
   const { utxos, walletAddress, collateral } =
-    await getWalletInfoForTx(redeemer_wallet);
+    await getWalletInfoForTx(sender_wallet);
 
   const inlineDatum = deserializeDatum<SwapDatum>(
     swapUtxo.output.plutusData!,
@@ -32,7 +33,7 @@ async function acceptSwap(swapUtxo: UTxO): Promise<string> {
     inlineDatum.fields[0],
     0,  // testnet
   );
-  const initiatorToReceive = inlineDatum.fields[2];
+  // const initiatorToReceive = inlineDatum.fields[2];
 
   const { scriptCbor, scriptAddr } = getScript()
 
@@ -46,12 +47,12 @@ async function acceptSwap(swapUtxo: UTxO): Promise<string> {
       swapUtxo.output.address,
     )
     .spendingReferenceTxInInlineDatumPresent()
-    .spendingReferenceTxInRedeemerValue(mConStr1([]))  // redeemer #1 Swap
+    .spendingReferenceTxInRedeemerValue(mConStr0([]))  // redeemer #0 Cancel
     .txInScript(scriptCbor)
-    .txOut(
-      initiatorAddress,
-      MeshValue.fromValue(initiatorToReceive).toAssets(),
-    )
+    // .txOut(
+    //   initiatorAddress,
+    //   MeshValue.fromValue(initiatorToReceive).toAssets(),
+    // )
     .changeAddress(walletAddress)
     .txInCollateral(
       collateral.input.txHash,
@@ -59,8 +60,10 @@ async function acceptSwap(swapUtxo: UTxO): Promise<string> {
       collateral.output.amount,
       collateral.output.address,
     )
+    .requiredSignerHash(deserializeAddress(initiatorAddress).pubKeyHash)
     .selectUtxosFrom(utxos)
     .complete();
+
   return txBuilder.txHex;
 };
 
@@ -78,12 +81,12 @@ async function main() {
 
     const swapUTxO = await getUtxoByTxHash(initSwapTxHash)
 
-    const unsignedTx = await acceptSwap(swapUTxO);
+    const unsignedTx = await cancelSwap(swapUTxO);
 
-    const signedTx = await redeemer_wallet.signTx(unsignedTx);
+    const signedTx = await sender_wallet.signTx(unsignedTx);
     console.log("signedTx", signedTx);
 
-    const txHash = await redeemer_wallet.submitTx(signedTx);
+    const txHash = await sender_wallet.submitTx(signedTx);
     console.log("txHash", txHash);
 
   } catch (error) {
